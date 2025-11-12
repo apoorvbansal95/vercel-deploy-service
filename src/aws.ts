@@ -57,3 +57,43 @@ export async function downloadS3folder(prefix:string) {
         await Promise.all(allPromises?.filter((x: Promise<string> | undefined): x is Promise<string> => x !== undefined) ?? []);
     
 }
+
+ 
+export function copyFinalDist(id:string){
+    const folderPath= path.join(__dirname, `repo/${id}/dist`);
+    const allFiles =generate_all_paths(folderPath);
+    allFiles.forEach(file=>{
+        uploadFile(`dist/${id}`+ file.slice(folderPath.length+1), file)
+    })
+}
+
+export const generate_all_paths = (folderPath: string) => {
+    let response: string[] = []
+    const allFile_Folders = fs.readdirSync(folderPath)
+    allFile_Folders.forEach((file) => {
+        const fullfilePath = path.join(folderPath, file)
+
+        if (fs.statSync(fullfilePath).isDirectory()) {
+            response = response.concat(generate_all_paths(fullfilePath))
+
+        }
+        else {
+            response.push(fullfilePath)
+        }
+    })
+    return response;
+}
+
+
+
+export const uploadFile = async (fileName: string, localfilePath: string) => {
+
+    const fileContent = fs.readFileSync(localfilePath);
+    const response = await s3.upload({
+        Body: fileContent,
+        Bucket: "vercel",
+        Key: fileName
+    }).promise();
+    console.log(response)
+
+}

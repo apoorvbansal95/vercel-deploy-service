@@ -1,5 +1,6 @@
 import {createClient} from 'redis';
 import { downloadS3folder } from './aws.js';
+import { buildProject } from './utils.js';
 const subscriber = createClient();
 subscriber.connect();
 
@@ -10,7 +11,10 @@ async function main(){
             0
         );
         console.log(response);
-        downloadS3folder(`${response?.element}/`)
+        await downloadS3folder(`${response?.element}/`);
+        console.log("downloaded")
+        //@ts-ignore
+        await buildProject(response?.element)
     }
 
 }
